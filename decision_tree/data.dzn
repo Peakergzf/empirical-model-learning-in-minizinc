@@ -1,9 +1,0 @@
-
-n = 13; % the number of nodes
-
-array[NODE] of bool: cond; % branching condition 
-array[NODE] of int: child; % BF ordering of the child
-array[NODE] of int: val; % leaf output value (0 for non-leaf node)
-
-
-
