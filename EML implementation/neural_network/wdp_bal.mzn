@@ -26,7 +26,7 @@ set of int: aRangeExd = 1..hidden_layer_size + 1;
 
 % assume one hidden layer, one output unit
 
-array[1..m,xRangeExd,aRange] of float: theta1;
+array[1..m,aRange,xRangeExd] of float: theta1;
 
 array[1..m, aRangeExd] of float: theta2;
 
@@ -52,47 +52,33 @@ constraint forall(k in 1..m)(
 % ------------------------------------- input features for ANN ------------------------------
 
 % 1. average cpi of the jobs on core k
-array[1..m] of var float: avgcpi;
-constraint forall(k in 1..m)(
-    avgcpi[k] = sum(i in 1..n)(cpi[i] * x[i, k]) / m
-);
+array[1..m] of var float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
-array[1..m] of var float: mincpi;
-constraint forall(k in 1..m)(
-    mincpi[k] = min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ])
-);
+array[1..m] of var float: mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
 
 % 3. average avgcpi of the neighboring cores
-array[1..m] of var float: neighcpi;
-constraint forall(k in 1..m)(
-    neighcpi[k] = sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1)
-);
+array[1..m] of var float: neighcpi = [ sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1) | k in 1..m ];
 
 % 4. average avgcpi of all the other cores
-array[1..m] of var float: othercpi;
-constraint forall(k in 1..m)(
-    othercpi[k] = sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1)
-);
+array[1..m] of var float: othercpi = [ sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1) | k in 1..m ];
 
 % ------------------------------------- embed ANN ------------------------------------------
 
 % determine the efficiency of each core using neural network
-array[1..m] of var float: eff;
-constraint forall(k in 1..m)(
     % input layer size, hidden layer size, (exlude bias unit)
     % input features (include bias unit)
-    eff[k] = neural_network( input_layer_size, 
+array[1..m] of var float: eff = [ 
+             neural_network( input_layer_size, 
                              hidden_layer_size, 
                              [ avgcpi[k], mincpi[k], neighcpi[k], othercpi[k], 1.0 ],
                              theta1[k, .., ..],
-                             theta2[k, ..] )
-);
+                             theta2[k, ..] ) | k in 1..m ];
 
 % ===================================== OBJECTIVE =====================================
 
 % maximize the worst-case core efficiency
-var float: obj; % = min(eff);
+var float: obj;
 constraint forall (i in index_set(eff)) (obj <= eff[i]);
 solve maximize obj;
 

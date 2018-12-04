@@ -20,4 +20,4 @@ array[1..num_workers,1..num_weeks,1..num_days] of int: a =
 
 solve satisfy;
 
-output [show(a[2,2,..])];
+output [show2d(a[2,..,..])];
