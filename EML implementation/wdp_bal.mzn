@@ -12,7 +12,23 @@ constraint assert(n mod m == 0, "n must be a multiple of m.");
 
 % cpi value of each job
 array[1..n] of float: cpi;
-% (characterize the jobs, low cpi generate more heat)
+
+% -------------------------------- data for neural network ----------------------------
+
+int: input_layer_size;
+int: hidden_layer_size;
+
+set of int: xRange = 1..input_layer_size; 
+set of int: aRange = 1..hidden_layer_size;
+% with bias unit
+set of int: xRangeExd = 1..input_layer_size + 1; 
+set of int: aRangeExd = 1..hidden_layer_size + 1;
+
+% assume one hidden layer, one output unit
+
+array[1..m,xRangeExd,aRange] of float: theta1;
+
+array[1..m, aRangeExd] of float: theta2;
 
 % ===================================== DECISION =====================================
 
@@ -49,7 +65,6 @@ constraint forall(k in 1..m)(
 
 % 3. average avgcpi of the neighboring cores
 array[1..m] of var float: neighcpi;
-% TODO 8x6 grid
 constraint forall(k in 1..m)(
     neighcpi[k] = sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1)
 );
@@ -67,13 +82,18 @@ array[1..m] of var float: eff;
 constraint forall(k in 1..m)(
     % input layer size, hidden layer size, (exlude bias unit)
     % input features (include bias unit)
-    eff[k] = neural_network( 4, 2, [ avgcpi[k], mincpi[k], neighcpi[k], othercpi[k], 1.0 ] )
+    eff[k] = neural_network( input_layer_size, 
+                             hidden_layer_size, 
+                             [ avgcpi[k], mincpi[k], neighcpi[k], othercpi[k], 1.0 ],
+                             theta1[k, .., ..],
+                             theta2[k, ..] )
 );
 
 % ===================================== OBJECTIVE =====================================
 
 % maximize the worst-case core efficiency
-var float: obj = min(eff);
+var float: obj; % = min(eff);
+constraint forall (i in index_set(eff)) (obj <= eff[i]);
 solve maximize obj;
 
 % ===================================== OUTPUT =====================================
