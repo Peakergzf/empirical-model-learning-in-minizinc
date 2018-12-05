@@ -78,7 +78,7 @@ array[1..m] of var float: eff = [
 % ===================================== OBJECTIVE =====================================
 
 % maximize the worst-case core efficiency
-var float: obj;
+var 0.0..1.0: obj;
 constraint forall (i in index_set(eff)) (obj <= eff[i]);
 solve maximize obj;
 
