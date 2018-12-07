@@ -1,7 +1,7 @@
 
 int: n = 13; % the number of nodes
 
-int: LEAF = 0;
+int: NO_CHILD = 0;
 
 set of int: NODE = 1..n;
 
@@ -41,7 +41,7 @@ array[NODE] of int: val = [-1, -1, -1, -1, 0, -1, 1, 1, -1, 0, 1, 0, 1];
 % index                     1   2   3   4  5   6  7  8   9  10 11 12 13
 
 function var int: res(var int: i) = 
-    if child[i] == LEAF then val[i]
+    if child[i] == NO_CHILD then val[i]
     elseif cond[i] then res(child[i])
     else res(child[i + 1])
     endif;

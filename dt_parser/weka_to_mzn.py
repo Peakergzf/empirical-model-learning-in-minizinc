@@ -3,27 +3,18 @@ LEAF_COND = "true"  # condition for leaf node
 NO_CHILD = 0  # child for leaf node
 NON_LEAF_VAL = -1  # classified value for non-leaf node
 
-with open("ptf_feat3.txt") as f:
-    lines = f.read().rstrip()
 
-trees = lines.split("\n\n")  # a list of  strings (each string represents a tree)
-assert (len(trees) == m)  # one decision tree for each core
+def read_file():
+    with open("ptf_feat3.txt") as f:
+        lines = f.read().rstrip()
 
-# build these lists for MiniZinc model, each one is indexed by the number of cores
-conds, children, vals = [], [], []
+    trees = lines.split("\n\n")  # a list of  strings (each string represents a tree)
+    assert (len(trees) == m)  # one decision tree for each core
 
-for tree in trees:
-    raw_edges = tree.split("\n")  # a list of  strings (each string represents an edge)
-    n = len(raw_edges)  # n = the number of edges; n + 1 = the number of nodes
+    return trees
 
-    if n == 1:  # (no branching/decision at all)
-        conds.append([LEAF_COND])
-        children.append([NO_CHILD])
-        vals.append([raw_edges[0][-1]])  # e.g. get '1' from [ ': 1' ]
-        continue
 
-    # counting sort edges according to their bfs order
-
+def counting_sort_edges(raw_edges):
     depth = max([e.count("|") for e in raw_edges])
 
     edges = [[] for _ in range(depth + 1)]
@@ -32,13 +23,15 @@ for tree in trees:
         indent = e.count("|")
         edges[indent].append(e)
 
-    # build helper arrays
+    return edges
 
-    node_num = [[] for _ in range(depth + 1)]
-    has_child = [[] for _ in range(depth + 1)]
 
-    bfs_order = 1  # used to number each node
-    bfs_order += 1  # skip root node
+def pre_process_edges(edges):
+    # outer list indexed by each level, inner list indexed by each node
+    node_num = [[] for _ in range(len(edges))]  # bfs order
+    has_child = [[] for _ in range(len(edges))]
+
+    bfs_order = 2  # (skip the root node)
 
     for i in range(len(edges)):
         level = edges[i]
@@ -47,49 +40,82 @@ for tree in trees:
             bfs_order += 1
             has_child[i].append(":" not in edge)
 
-    # build ans arrays
+    return node_num, has_child
 
-    # cond = [None for _ in range(n + 1)]
-    cond = []
-    child = [None for _ in range(n + 1)]
-    val = [None for _ in range(n + 1)]
 
-    # TODO init for root node
+def main():
+    # built for MiniZinc model, each one is indexed by the number of cores
+    conditions, children, values = [], [], []
 
-    for i in range(len(edges)):
-        level = edges[i]
+    trees = read_file()
 
-        if i == 0:
-            cond.append(level[i])
-        else:
-            next_j = 0
-            for j in range(len(has_child[i - 1])):
-                if has_child[i - 1][j]:
-                    cond.append(edges[i][next_j].replace("|", "").strip()[:-3])
-                    next_j += 2
+    for tree in trees:
+
+        raw_edges = tree.split("\n")  # a list of  strings (each string represents an edge)
+        n = len(raw_edges)  # n = the number of edges; n + 1 = the number of nodes
+
+        if n == 1:  # (no branching/decision at all)
+            conditions.append([LEAF_COND])
+            children.append([NO_CHILD])
+            values.append([raw_edges[0][-1]])  # e.g. get '1' from [ ': 1' ]
+            continue
+
+        edges = counting_sort_edges(raw_edges)
+
+        node_num, has_child = pre_process_edges(edges)
+
+        # indexed by each node in bfs order
+        cond = []  # left branching condition for each node
+        child = [NO_CHILD for _ in range(n + 1)]  # bfs order of the left child
+        val = [NON_LEAF_VAL for _ in range(n + 1)]  # output value for leaf node
+
+        # init root node
+        child[0] = 2
+
+        for i in range(len(edges)):
+            level = edges[i]
+
+            if i == 0:  # root node
+                cond.append(level[i])
+            else:
+                edge_idx = 0
+                for j in range(len(has_child[i - 1])):
+                    if has_child[i - 1][j]:  # look up the previous level
+                        cond.append(level[edge_idx].replace("|", "").strip()[:-3])
+                        edge_idx += 2  # since binary
+                    else:
+                        cond.append(LEAF_COND)
+
+            edge_idx = 0
+            for j in range(len(level)):
+                edge = level[j]
+                idx = node_num[i][j] - 1  # convert from 1 to 0 based index
+                if has_child[i][j]:
+                    child[idx] = node_num[i + 1][edge_idx]  # next level
+                    edge_idx += 2  # since binary
                 else:
-                    cond.append(LEAF_COND)
+                    val[idx] = int(edge[-1])
 
-        next_level_j = 0
-        for j in range(len(level)):
-            edge = level[j]
-            idx = node_num[i][j] - 1  # convert from 1 to 0 based index
-            if has_child[i][j]:
-                child[idx] = node_num[i + 1][next_level_j]
-                next_level_j += 2
-            if not has_child[i][j]:
-                val[idx] = edge[-1]
+        # add the deepest two leaf conditions
+        cond += [LEAF_COND, LEAF_COND]
 
-    # TODO
-    cond += [LEAF_COND, LEAF_COND]
+        conditions.append(cond)
+        children.append(child)
+        values.append(val)
 
-    conds.append(cond)
-    children.append(child)
-    vals.append(val)
+        # testing
+        if "2.114625" in tree:  # 2.114625  # 0.695117
+            assert node_num == [[2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], [16, 17], [18, 19], [20, 21]]
+            assert has_child == [[True, True], [False, True, True, False], [True, False, True, False],
+                                 [False, False, False, True], [True, False], [True, False], [False, False]]
+            assert cond == ['self_cpi_min  <= 2.114625', 'self_cpi_min  <= 1.811556', 'self_cpi_min  <= 4.428', 'true',
+                            'neigh_cpi_mean  <= 10.000', 'all_cpi_mean  <= 19.021', 'true',
+                            'self_cpi_mean  <= 10.000000', 'true', 'all_cpi_mean  <= 2.680851', 'true', 'true', 'true',
+                            'true', 'self_cpi_mean  <= 10.000', 'neigh_cpi_mean  <= 2.000', 'true',
+                            'self_cpi_min  <= 3.394520', 'true', 'true', 'true']
+            assert child == [2, 4, 6, 0, 8, 10, 0, 12, 0, 14, 0, 0, 0, 0, 16, 18, 0, 20, 0, 0, 0]
+            assert val == [-1, -1, -1, 0, -1, -1, 1, -1, 1, -1, 1, 0, 1, 0, -1, -1, 1, -1, 1, 0, 1]
 
-    if "0.695117" in tree:  # 2.114625  # 0.695117
-        # print(node_num)
-        # print(has_child)
-        print(cond)
-        print(child)
-        print(val)
+
+if __name__ == '__main__':
+    main()
