@@ -1,0 +1,20 @@
+{
+    "builtinSolverConfigs": [
+    ],
+    "openFiles": [
+        "decision_tree.mzn",
+        "data.dzn",
+        "wdp_max.mzn"
+    ],
+    "openTab": 0,
+    "projectFiles": [
+        "data.dzn",
+        "decision_tree.mzn",
+        "wdp_max.mzn"
+    ],
+    "projectSolverConfigs": [
+    ],
+    "selectedBuiltinConfigId": "org.gecode.gecode",
+    "selectedBuiltinConfigVersion": "6.1.0",
+    "version": 105
+}

@@ -12,20 +12,75 @@ self_cpi_min  <= 0.695117
 |   all_cpi_mean  > 9.148936: 1
 self_cpi_min  > 0.695117: 1
 
-to
+to the following 5 lists (each indexed by the nodes in bfs order)
 
-[self_cpi_min  <= 0.695117, all_cpi_mean  <= 9.148, true, self_cpi_mean  <= 2.000000, true, true, true]
+1. feature index
+[1, 3, -1, 2, -1, -1, -1]
+
+2. relation
+[LE, LE, LEAF, LE, LEAF, LEAF, LEAF]
+
+3. feature value
+[0.695117, 9.148, -1, 2.000000, -1, -1, -1]
+
+    (the 3 lists above represent the left branching condition
+     [self_cpi_min  <= 0.695117, all_cpi_mean  <= 9.148, true, self_cpi_mean  <= 2.000000, true, true, true] )
+
+4. left child
 [2, 4, -1, 6, -1, -1, -1]
+
+5. leaf output value
 [-1, -1, 1, -1, 1, 0, 1]
 
-representing: left branching condition, left child, output value for each node
-(the nodes are numbered in their bfs order)
 """
 
-# constants
-LEAF_COND = "true"  # condition for leaf node
-NO_CHILD = -1  # child for leaf node
-NON_LEAF_VAL = -1  # classified value for non-leaf node
+NAMES = ["feature_idx", "feature_rel", "feature_val", "child", "val"]
+LEAVES = [-1, "LEAF", -1, -1, -1]
+DUMMIES = [-2, "DUM", -2, -2, -2]
+
+LEAF_COND = "true"
+
+FEAT_IDX = {
+    "self_cpi_min": 1,
+    "self_cpi_mean": 2,
+    "all_cpi_mean": 3,
+    "neigh_cpi_mean": 4,
+}
+
+FEAT_REL = {
+    "<": "LT",
+    "<=": "LE",
+    ">": "GT",
+    ">=": "GE",
+    "==": "EQ",
+    "=": "EQ",
+}
+
+
+class Output:
+    def __init__(self, names):
+        self.names = names
+        self.cnt = len(self.names)
+        self.output = [[] for _ in range(self.cnt)]
+
+    def __str__(self):
+        str_rep = ""
+        for i in range(self.cnt):
+            str_rep += self.names[i] + " = [|\n"
+            for lst in self.output[i]:
+                str_rep += str(lst).replace("'", '').replace('[', '').replace(']', '') + ",|\n"
+            str_rep = str_rep.rstrip('\n').rstrip('|').rstrip(',') + " |];\n\n"
+        return str_rep
+
+    def add(self, inner_lists):
+        for i in range(self.cnt):
+            self.output[i].append(inner_lists[i])
+
+    def fill_dummies(self):
+        for i in range(self.cnt):
+            max_len = max([len(lst) for lst in self.output[i]])
+            for lst in self.output[i]:
+                lst += [DUMMIES[i] for _ in range(max_len - len(lst))]
 
 
 def read_file():
@@ -90,8 +145,8 @@ def construct_tree(n, edges, node_num, has_child):
                    val: output value for leaf node
     """
     cond = []
-    child = [NO_CHILD for _ in range(n + 1)]
-    val = [NON_LEAF_VAL for _ in range(n + 1)]
+    child = [LEAVES[NAMES.index("child")] for _ in range(n + 1)]
+    val = [LEAVES[NAMES.index("val")] for _ in range(n + 1)]
 
     # init root node
     fst_edge = edges[0][0]
@@ -114,38 +169,50 @@ def construct_tree(n, edges, node_num, has_child):
     return cond, child, val
 
 
-def format_output(results):
+def convert_cond(cond):
     """
-    :param results: a list of strings
-    :return: a combined formatted string
+    :param cond: condition (e.g. all_cpi_mean  <= 9.148 or true)
+    :return: feat_idx, feat_rel, feat_val (e.g. 3, LE, 9.148 or -1, LEAF, -1)
     """
-    ans = ""
-    for result in results:
-        ans += str(result).replace("'", '').replace('[', '').replace(']', '') + ",|\n"
-    ans = ans.rstrip('\n').rstrip('|').rstrip(',') + " |];\n\n"
-    return ans
+    feat_idx = [
+        LEAVES[NAMES.index("feature_idx")]
+        if c.split()[0] == LEAF_COND
+        else FEAT_IDX[c.split()[0]]
+        for c in cond
+    ]
+    feat_rel = [
+        LEAVES[NAMES.index("feature_rel")]
+        if c.split()[0] == LEAF_COND
+        else FEAT_REL[c.split()[1]]
+        for c in cond
+    ]
+    feat_val = [
+        LEAVES[NAMES.index("feature_val")]
+        if c.split()[0] == LEAF_COND
+        else c.split()[2]
+        for c in cond
+    ]
+
+    return feat_idx, feat_rel, feat_val
 
 
-def create_data_file(conditions, children, values):
+def create_data_file(output):
     """
-    takes the result lists and write them into the output file
+    read cpi values from the file and takes the output string,
+    writes to the output file
     """
-    output = ""
-    output += "cond = [|\n" + format_output(conditions)
-    output += "child = [|\n" + format_output(children)
-    output += "val = [|\n" + format_output(values)
+    with open("cpi.in") as f:
+        cpi = f.read()
 
-    # clear the output file
     with open("data.dzn", 'w'):
         pass
 
     with open("data.dzn", 'a') as data_file:
-        data_file.write(output)
+        data_file.write(cpi + output)
 
 
 def main():
-    # each indexed by the number of cores
-    conditions, children, values = [], [], []
+    output = Output(NAMES)
 
     trees = read_file()
 
@@ -155,9 +222,7 @@ def main():
         n = len(raw_edges)  # n = the number of edges; n + 1 = the number of nodes
 
         if n == 1:  # (no branching/decision at all)
-            conditions.append([LEAF_COND])
-            children.append([NO_CHILD])
-            values.append([int(raw_edges[0][-1])])  # e.g. get '1' from [ ': 1' ]
+            output.add([[LEAVES[i]] if i != output.cnt - 1 else [int(raw_edges[0][-1])] for i in range(output.cnt)])
             continue
 
         edges = counting_sort_edges(raw_edges)
@@ -166,37 +231,12 @@ def main():
 
         cond, child, val = construct_tree(n, edges, node_num, has_child)
 
-        conditions.append(cond)
-        children.append(child)
-        values.append(val)
+        feat_idx, feat_rel, feat_val = convert_cond(cond)
 
-        # testing
-        if "2.114625" in tree:  # 2.114625  # 0.695117
-            assert node_num == [[2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], [16, 17], [18, 19], [20, 21]]
-            assert has_child == [[True, True], [False, True, True, False], [True, False, True, False],
-                                 [False, False, False, True], [True, False], [True, False], [False, False]]
-            assert cond == ['self_cpi_min  <= 2.114625', 'self_cpi_min  <= 1.811556',
-                            'self_cpi_min  <= 4.428939', 'true', 'neigh_cpi_mean  <= 10.000000',
-                            'all_cpi_mean  <= 19.021277', 'true', 'self_cpi_mean  <= 10.000000',
-                            'true', 'all_cpi_mean  <= 2.680851', 'true', 'true', 'true', 'true',
-                            'self_cpi_mean  <= 10.000000', 'neigh_cpi_mean  <= 2.000000',
-                            'true', 'self_cpi_min  <= 3.394520', 'true', 'true', 'true']
-            assert child == [2, 4, 6, -1, 8, 10, -1, 12, -1, 14, -1, -1, -1, -1, 16, 18, -1, 20, -1, -1, -1]
-            assert val == [-1, -1, -1, 0, -1, -1, 1, -1, 1, -1, 1, 0, 1, 0, -1, -1, 1, -1, 1, 0, 1]
+        output.add([feat_idx, feat_rel, feat_val, child, val])
 
-    max_cond = max([len(cond) for cond in conditions])
-    for cond in conditions:
-        cond += ['false' for _ in range(max_cond - len(cond))]
-
-    max_child = max([len(child) for child in children])
-    for child in children:
-        child += ['-2' for _ in range(max_child - len(child))]
-
-    max_val = max([len(val) for val in values])
-    for val in values:
-        val += ['-2' for _ in range(max_val - len(val))]
-
-    create_data_file(conditions, children, values)
+    output.fill_dummies()
+    create_data_file(str(output))
 
 
 if __name__ == '__main__':

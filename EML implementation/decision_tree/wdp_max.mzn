@@ -13,8 +13,13 @@ constraint assert(n mod m == 0, "n must be a multiple of m.");
 % cpi value of each job
 array[1..n] of float: cpi;
 
-% decision tree information
-array[1..m, int] of var bool: cond;
+% ---------------------------------- decision tree ----------------------------------
+
+enum REL = { LT, LE, GT, GE, EQ, LEAF, DUM };
+
+array[1..m, int] of int: feature_idx;
+array[1..m, int] of REL: feature_rel;
+array[1..m, int] of float: feature_val;
 
 array[1..m, int] of int: child;
 
@@ -42,27 +47,26 @@ constraint forall(k in 1..m)(
 % ------------------------------------- input features for DT ------------------------------
 
 % 1. average cpi of the jobs on core k
-array[1..m] of var float: self_cpi_mean_lst = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
+array[1..m] of var float: self_cpi_mean = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
-array[1..m] of var float: self_cpi_min_lst = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
+array[1..m] of var float: self_cpi_min = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
 
 % 3. average avgcpi of all the other cores
-array[1..m] of var float: all_cpi_mean_lst = [ sum(j in 1..m where j != k)(self_cpi_mean_lst[j]) / (m - 1) | k in 1..m ];
+array[1..m] of var float: all_cpi_mean = [ sum(j in 1..m where j != k)(self_cpi_mean[j]) / (m - 1) | k in 1..m ];
 
 % 4. average avgcpi of the neighboring cores
-array[1..m] of var float: neigh_cpi_mean_lst = [ sum(j in 1..m where j != k)(self_cpi_mean_lst[j]) / (m - 1) | k in 1..m ];
+array[1..m] of var float: neigh_cpi_mean = [ sum(j in 1..m where j != k)(self_cpi_mean[j]) / (m - 1) | k in 1..m ];
 
 % ------------------------------------- embed DT ------------------------------------------
 
 % determine if the efficiency of each core is larger than a certain threshold using decision tree
 array[1..m] of var 0..1: eff = [ 
-             decision_tree( 1,
-                            self_cpi_min_lst[k],
-                            self_cpi_mean_lst[k],
-                            all_cpi_mean_lst[k],
-                            neigh_cpi_mean_lst[k],
-                            cond[k, ..],
+             decision_tree( 
+                            [ self_cpi_min[k], self_cpi_mean[k], all_cpi_mean[k], neigh_cpi_mean[k] ],
+                            feature_idx[k, ..], 
+                            array1d(feature_rel[k, ..]), 
+                            feature_val[k, ..],
                             child[k, ..],
                             val[k, ..] ) | k in 1..m ];
 
