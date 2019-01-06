@@ -1,15 +1,17 @@
 
+enum REL = { LT, LE, GT, GE, EQ, LEAF, DUM };
+
 function var int: dt_aux(
   int: i,
   array[int] of var bool: cond,
   array[int] of int: child,
   array[int] of int: val
-) = 
-if child[i] == -1 then val[i]
-elseif cond[i] then dt_aux(child[i], cond, child, val)
-else dt_aux(child[i + 1], cond, child, val)
-endif;
-
+) ::promise_total = if child[i] = -1 then val[i] else 
+let {
+  var int: left = dt_aux(child[i], cond, child, val);
+  var int: right = dt_aux(child[i] + 1, cond, child, val);
+} in 
+if cond[i] then left else right endif endif; 
 
 
 function var int: decision_tree(

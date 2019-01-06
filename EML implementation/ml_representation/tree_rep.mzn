@@ -43,7 +43,7 @@ array[NODE] of int: val = [-1, -1, -1, -1, 0, -1, 1, 1, -1, 0, 1, 0, 1];
 function var int: res(var int: i) = 
     if child[i] == NO_CHILD then val[i]
     elseif cond[i] then res(child[i])
-    else res(child[i + 1])
+    else res(child[i] + 1)
     endif;
 
 constraint res(1) == 1;

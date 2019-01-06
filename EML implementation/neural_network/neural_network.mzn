@@ -16,7 +16,6 @@ function var float: neural_network(
 let {
 
 constraint assert(length(x) == input_layer_size + 1, "inconsistent input layer size");
-constraint assert(length(x) == input_layer_size + 1, "inconsistent theta1 size");
 constraint assert(length(theta2) == hidden_layer_size + 1, "inconsistent theta2 size");
 
 set of int: xRange = 1..input_layer_size; 

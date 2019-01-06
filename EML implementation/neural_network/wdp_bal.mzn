@@ -26,7 +26,7 @@ set of int: aRangeExd = 1..hidden_layer_size + 1;
 
 % assume one hidden layer, one output unit
 
-array[1..m,aRange,xRangeExd] of float: theta1;
+array[1..m, aRange, xRangeExd] of float: theta1;
 
 array[1..m, aRangeExd] of float: theta2;
 
