@@ -1,4 +1,5 @@
 include "decision_tree.mzn";
+include "neigh_k.mzn";
 
 % Workload Dispatching Problem 
 % (variance 2 - WDP_max)
@@ -7,6 +8,8 @@ include "decision_tree.mzn";
 
 int: n; % the number of jobs
 int: m; % the number of cores
+
+int: h; % the height of the grid
 
 constraint assert(n mod m == 0, "n must be a multiple of m.");
 
@@ -50,11 +53,19 @@ array[1..m] of var float: self_cpi_mean = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m
 % 2. minimum cpi of the jobs on core k
 array[1..m] of var 0.0..max(cpi): self_cpi_min = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
 
+
+% (set of neighbors for each core)
+array[1..m] of set of int: neigh = [ N(k, m, h) | k in 1..m ];
+
 % 3. average avgcpi of all the other cores
-array[1..m] of var float: all_cpi_mean = [ sum(j in 1..m where j != k)(self_cpi_mean[j]) / (m - 1) | k in 1..m ];
+array[1..m] of var float: all_cpi_mean = [ 
+    sum(j in 1..m diff neigh[k] diff { k } ) (self_cpi_mean[j]) / (m - 1 - card(neigh[k])) 
+| k in 1..m ];
 
 % 4. average avgcpi of the neighboring cores
-array[1..m] of var float: neigh_cpi_mean = [ sum(j in 1..m where j != k)(self_cpi_mean[j]) / (m - 1) | k in 1..m ];
+array[1..m] of var float: neigh_cpi_mean = [ 
+    sum(j in neigh[k]) (self_cpi_mean[j]) / card(neigh[k]) 
+| k in 1..m ];
 
 % ------------------------------------- embed DT ------------------------------------------
 

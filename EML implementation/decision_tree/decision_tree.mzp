@@ -26,15 +26,24 @@
     ],
     "openFiles": [
         "decision_tree.mzn",
-        "data.dzn",
         "wdp_max.mzn",
-        "data2.dzn",
-        "test.mzn"
+        "test.mzn",
+        "288_48.dzn",
+        "72_12.dzn",
+        "36_12.dzn",
+        "144_12.dzn",
+        "288_12.dzn",
+        "288_24.dzn",
+        "288_48.dzn"
     ],
-    "openTab": 4,
+    "openTab": 9,
     "projectFiles": [
-        "data.dzn",
-        "data2.dzn",
+        "144_12.dzn",
+        "288_12.dzn",
+        "288_24.dzn",
+        "288_48.dzn",
+        "36_12.dzn",
+        "72_12.dzn",
         "decision_tree.mzn",
         "test.mzn",
         "wdp_max.mzn"

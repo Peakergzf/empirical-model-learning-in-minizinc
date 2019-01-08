@@ -1,4 +1,5 @@
 include "neural_network.mzn";
+include "neigh_k.mzn";
 
 % Workload Dispatching Problem 
 % (variance 1 - WDP_bal)
@@ -7,6 +8,8 @@ include "neural_network.mzn";
 
 int: n; % the number of jobs
 int: m; % the number of cores
+
+int: h;
 
 constraint assert(n mod m == 0, "n must be a multiple of m.");
 
@@ -55,13 +58,24 @@ constraint forall(k in 1..m)(
 array[1..m] of var float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
-array[1..m] of var float: mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
+array[1..m] of var 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
+
+
+% (set of neighbors for each core)
+array[1..m] of set of int: neigh = [ N(k, m, h) | k in 1..m ];
+
 
 % 3. average avgcpi of the neighboring cores
-array[1..m] of var float: neighcpi = [ sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1) | k in 1..m ];
+array[1..m] of var float: neighcpi = [ 
+    sum(j in neigh[k]) (avgcpi[j]) / card(neigh[k]) 
+| k in 1..m ];
 
 % 4. average avgcpi of all the other cores
-array[1..m] of var float: othercpi = [ sum(j in 1..m where j != k)(avgcpi[j]) / (m - 1) | k in 1..m ];
+array[1..m] of var float: othercpi = [
+    sum(j in 1..m diff neigh[k] diff { k } ) (avgcpi[j]) / (m - 1 - card(neigh[k])) 
+| k in 1..m ];
+
+
 
 % ------------------------------------- embed ANN ------------------------------------------
 
