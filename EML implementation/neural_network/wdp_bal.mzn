@@ -58,7 +58,7 @@ constraint forall(k in 1..m)(
 array[1..m] of var float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
-array[1..m] of var 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i,k] | i in 1..n ]) | k in 1..m ];
+array[1..m] of var 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
 
 
 % (set of neighbors for each core)
@@ -72,7 +72,7 @@ array[1..m] of var float: neighcpi = [
 
 % 4. average avgcpi of all the other cores
 array[1..m] of var float: othercpi = [
-    sum(j in 1..m diff neigh[k] diff { k } ) (avgcpi[j]) / (m - 1 - card(neigh[k])) 
+    sum(j in 1..m diff neigh[k] diff {k} ) (avgcpi[j]) / (m - 1 - card(neigh[k])) 
 | k in 1..m ];
 
 
@@ -80,7 +80,7 @@ array[1..m] of var float: othercpi = [
 % ------------------------------------- embed ANN ------------------------------------------
 
 % determine the efficiency of each core using neural network
-    % input layer size, hidden layer size, (exlude bias unit)
+    % input layer size, hidden layer size, (exclude bias unit)
     % input features (include bias unit)
 array[1..m] of var float: eff = [ 
              neural_network( input_layer_size, 

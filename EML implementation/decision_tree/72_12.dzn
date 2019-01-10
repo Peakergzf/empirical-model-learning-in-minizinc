@@ -1,7 +1,7 @@
 
 n = 72; % the number of jobs
 m = 12; % the number of cores
-h = 3;
+h = 4;
 
 % cpi values of each job
 cpi = [

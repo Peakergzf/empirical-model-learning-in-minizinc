@@ -8,6 +8,29 @@
             "defaultBehavior": true,
             "flatteningStats": false,
             "freeSearch": false,
+            "id": "org.minizinc.mip.cplex",
+            "nThreads": 1,
+            "name": "CPLEX 12.8.0.0",
+            "optimizationLevel": 1,
+            "outputTiming": false,
+            "printIntermediate": false,
+            "runSolutionChecker": true,
+            "solverFlags": "",
+            "solvingStats": false,
+            "stopAfter": 1,
+            "timeLimit": 0,
+            "verboseFlattening": false,
+            "verboseSolving": false,
+            "version": "12.8.0.0"
+        },
+        {
+            "additionalCompilerCommandline": "",
+            "additionalData": "",
+            "clearOutputWindow": true,
+            "compressSolutionOutput": 100,
+            "defaultBehavior": true,
+            "flatteningStats": false,
+            "freeSearch": false,
             "id": "org.minizinc.mip.osicbc",
             "nThreads": 1,
             "name": "OSICBC 2.9/1.16",
@@ -27,16 +50,10 @@
     "openFiles": [
         "decision_tree.mzn",
         "wdp_max.mzn",
-        "test.mzn",
         "288_48.dzn",
-        "72_12.dzn",
-        "36_12.dzn",
-        "144_12.dzn",
-        "288_12.dzn",
-        "288_24.dzn",
-        "288_48.dzn"
+        "neigh_k.mzn"
     ],
-    "openTab": 9,
+    "openTab": 1,
     "projectFiles": [
         "144_12.dzn",
         "288_12.dzn",
@@ -45,12 +62,14 @@
         "36_12.dzn",
         "72_12.dzn",
         "decision_tree.mzn",
+        "neigh_k.mzn",
         "test.mzn",
-        "wdp_max.mzn"
+        "wdp_max.mzn",
+        "../neural_network/wdp_bal.mzn"
     ],
     "projectSolverConfigs": [
     ],
-    "selectedBuiltinConfigId": "org.minizinc.mip.osicbc",
-    "selectedBuiltinConfigVersion": "2.9/1.16",
+    "selectedBuiltinConfigId": "org.minizinc.mip.cplex",
+    "selectedBuiltinConfigVersion": "12.8.0.0",
     "version": 105
 }

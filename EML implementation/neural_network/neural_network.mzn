@@ -1,6 +1,6 @@
 
 function var float: mytanh(var float: a) ::promise_total =
-    let { var 0.0..exp(2.0*ub(a)): e2a;
+    let { var 0.0..infinity: e2a;
           constraint float_exp(2.0*a,e2a);
           var 0.0..1.0: b = (e2a-1.0)/(e2a+1.0);
         } in b;

@@ -28,12 +28,14 @@
         "data.dzn",
         "data2.dzn",
         "neural_network.mzn",
-        "wdp_bal.mzn"
+        "wdp_bal.mzn",
+        "neigh_k.mzn"
     ],
-    "openTab": 3,
+    "openTab": 4,
     "projectFiles": [
         "data.dzn",
         "data2.dzn",
+        "neigh_k.mzn",
         "neural_network.mzn",
         "wdp_bal.mzn"
     ],
