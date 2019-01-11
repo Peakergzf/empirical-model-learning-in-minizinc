@@ -64,12 +64,11 @@
         "decision_tree.mzn",
         "neigh_k.mzn",
         "test.mzn",
-        "wdp_max.mzn",
-        "../neural_network/wdp_bal.mzn"
+        "wdp_max.mzn"
     ],
     "projectSolverConfigs": [
     ],
-    "selectedBuiltinConfigId": "org.minizinc.mip.cplex",
-    "selectedBuiltinConfigVersion": "12.8.0.0",
+    "selectedBuiltinConfigId": "org.minizinc.mip.gurobi",
+    "selectedBuiltinConfigVersion": "8.1.0",
     "version": 105
 }

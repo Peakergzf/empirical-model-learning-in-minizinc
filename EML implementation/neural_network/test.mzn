@@ -1,4 +1,4 @@
-include "neural_network.mzn";
+include "test_ann.mzn";
 include "neigh_k.mzn";
 
 % Workload Dispatching Problem 
@@ -33,18 +33,11 @@ array[1..m, aRange, xRangeExd] of float: theta1;
 
 array[1..m, aRangeExd] of float: theta2;
 
-% ----------- sol ------------
-array[1..n, 1..m] of bool: sol;
-% ----------------------------
 
 % ===================================== DECISION =====================================
 
 % x[i, k] = true  iff job i is mapped on core k and false otherwise
-array[1..n, 1..m] of var bool: x;
-
-% ---------------- sol -------------------
-constraint forall(i in 1..n, k in 1..m)(sol[i, k] == x[i, k]);
-% ----------------------------------------
+array[1..n, 1..m] of bool: x;
 
 % ===================================== CONSTRSINTS =====================================
 
@@ -63,10 +56,10 @@ constraint forall(k in 1..m)(
 % ------------------------------------- input features for ANN ------------------------------
 
 % 1. average cpi of the jobs on core k
-array[1..m] of var float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
+array[1..m] of float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
-array[1..m] of var 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
+array[1..m] of 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
 
 
 % (set of neighbors for each core)
@@ -74,12 +67,12 @@ array[1..m] of set of int: neigh = [ N(k, m, h) | k in 1..m ];
 
 
 % 3. average avgcpi of the neighboring cores
-array[1..m] of var float: neighcpi = [ 
+array[1..m] of float: neighcpi = [ 
     sum(j in neigh[k]) (avgcpi[j]) / card(neigh[k]) 
 | k in 1..m ];
 
 % 4. average avgcpi of all the other cores
-array[1..m] of var float: othercpi = [
+array[1..m] of float: othercpi = [
     sum(j in 1..m diff neigh[k] diff {k} ) (avgcpi[j]) / (m - 1 - card(neigh[k])) 
 | k in 1..m ];
 
@@ -90,7 +83,7 @@ array[1..m] of var float: othercpi = [
 % determine the efficiency of each core using neural network
     % input layer size, hidden layer size, (exclude bias unit)
     % input features (include bias unit)
-array[1..m] of var float: eff = [ 
+array[1..m] of float: eff = [ 
              neural_network( input_layer_size, 
                              hidden_layer_size, 
                              [ avgcpi[k], mincpi[k], neighcpi[k], othercpi[k], 1.0 ],
@@ -101,12 +94,17 @@ array[1..m] of var float: eff = [
 % ===================================== OBJECTIVE =====================================
 
 % maximize the worst-case core efficiency
-var 0.0..1.0: obj;
+var -1.0..1.0: obj;
 constraint forall (i in index_set(eff)) (obj <= eff[i]);
 solve maximize obj;
 
+% constraint trace(show(eff));
+
 % ===================================== OUTPUT =====================================
 
-output [ show(x[i, k] + 0) ++ if k == m then "\n" else " " endif | i in 1..n, k in 1..m ]
-       ++
-       [ "\nObjective = \(obj)" ];
+constraint trace(show(avgcpi));
+constraint trace(show(eff));
+
+% output [ show(x[i, k] + 0) ++ if k == m then "\n" else " " endif | i in 1..n, k in 1..m ]
+%        ++
+%        [ "\nObjective = \(obj)" ];

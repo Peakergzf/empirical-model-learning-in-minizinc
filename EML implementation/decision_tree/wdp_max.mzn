@@ -90,13 +90,14 @@ solve maximize obj;
 
 % ===================================== OUTPUT =====================================
 
+% output [ show(x[i, k] + 0) ++ if k == m then "\n" else " " endif | i in 1..n, k in 1..m ];
+
 output  
       ["\njob -> core mapping:\n"]
        ++
-       [
-         if k == 1 then "\(i)->" else "" endif ++
-         if fix(x[i, k]) then "\(k),\t" else "" endif ++
-         if i mod ((n div m)*2) == 0  /\ k == m then "\n" else "" endif
+       [ if k == 1 then "\(i)->" else "" endif ++
+         if fix(x[i, k]) then "\(k), " else "" endif
+%          ++if i mod ((n div m)*2) == 0  /\ k == m then "\n" else "" endif
          | i in 1..n, k in 1..m ]
        ++
        ["\naverage CPI map:\n\t"]
