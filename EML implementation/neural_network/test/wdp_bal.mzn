@@ -1,5 +1,5 @@
-include "test_ann.mzn";
-include "neigh_k.mzn";
+include "ann.mzn";
+include "neigh.mzn";
 
 % Workload Dispatching Problem 
 % (variance 1 - WDP_bal)
@@ -55,15 +55,20 @@ constraint forall(k in 1..m)(
 
 % ------------------------------------- input features for ANN ------------------------------
 
+float: span0 = (max(cpi) + min(cpi))/2;
+float: span1 = (max(cpi) - min(cpi))/2;
+
 % 1. average cpi of the jobs on core k
-array[1..m] of float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
+% array[1..m] of float: avgcpi = [ ((sum(i in 1..n)(cpi[i] * x[i,k]) /m) - span0) / span1 | k in 1..m ];
+
+array[1..m] of float: avgcpi;
 
 % 2. minimum cpi of the jobs on core k
 array[1..m] of 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
 
 
 % (set of neighbors for each core)
-array[1..m] of set of int: neigh = [ N(k, m, h) | k in 1..m ];
+array[1..m] of set of int: neigh = [ N(k) | k in 1..m ];
 
 
 % 3. average avgcpi of the neighboring cores
@@ -98,13 +103,8 @@ var -1.0..1.0: obj;
 constraint forall (i in index_set(eff)) (obj <= eff[i]);
 solve maximize obj;
 
-% constraint trace(show(eff));
-
 % ===================================== OUTPUT =====================================
 
-constraint trace(show(avgcpi));
+% constraint trace(show(avgcpi) ++ "\n");
 constraint trace(show(eff));
 
-% output [ show(x[i, k] + 0) ++ if k == m then "\n" else " " endif | i in 1..n, k in 1..m ]
-%        ++
-%        [ "\nObjective = \(obj)" ];

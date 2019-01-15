@@ -1,9 +1,5 @@
 
-function float: mytanh(float: a) ::promise_total =
-    let { 0.0..infinity: e2a = exp(2.0*a);
-%           constraint float_exp(2.0*a, e2a);
-          0.0..1.0: b = (e2a-1.0)/(e2a+1.0);
-        } in b;
+function float: mytanh(float: a) = (exp(2.0*a)-1.0)/(exp(2.0*a)+1.0);
 
 function float: neural_network(
   int: input_layer_size, 
@@ -30,7 +26,6 @@ array [aRangeExd] of 0.0..1.0: a = [
     else mytanh(sum(j in xRangeExd)(x[j] * theta1[i, j]))
     endif
     | i in aRangeExd ];
+}
 
-
-
-} in mytanh(sum(i in aRangeExd)(a[i] * theta2[i])); % hypothesiss
+in mytanh(sum(i in aRangeExd)(a[i] * theta2[i])); % hypothesiss
