@@ -50,20 +50,16 @@
     "openFiles": [
         "decision_tree.mzn",
         "wdp_max.mzn",
-        "288_48.dzn",
         "neigh_k.mzn"
     ],
     "openTab": 1,
     "projectFiles": [
-        "144_12.dzn",
-        "288_12.dzn",
-        "288_24.dzn",
-        "288_48.dzn",
-        "36_12.dzn",
-        "72_12.dzn",
+        "data/140_20.dzn",
+        "data/144_24.dzn",
+        "data/288_12.dzn",
+        "data/288_48.dzn",
         "decision_tree.mzn",
         "neigh_k.mzn",
-        "test.mzn",
         "wdp_max.mzn"
     ],
     "projectSolverConfigs": [

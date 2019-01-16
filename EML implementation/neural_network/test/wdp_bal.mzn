@@ -50,7 +50,7 @@ constraint forall(i in 1..n)(
 
 % the same number of jobs run on each core
 constraint forall(k in 1..m)(
-    sum(i in 1..n)(x[i, k]) = n div m 
+    sum(i in 1..n)(x[i, k]) = n div m
 );
 
 % ------------------------------------- input features for ANN ------------------------------
