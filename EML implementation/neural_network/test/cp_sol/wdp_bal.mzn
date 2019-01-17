@@ -44,20 +44,24 @@ array[1..n, 1..m] of bool: x;
 % ------------------------------------- verification -------------------------------------
 
 % each job is mapped on a single core
-constraint forall(i in 1..n)(sum(k in 1..m)(x[i, k]) = 1);
+constraint forall(i in 1..n)(
+    sum(k in 1..m)(x[i, k]) = 1
+);
 
 % the same number of jobs run on each core
-constraint forall(k in 1..m)(sum(i in 1..n)(x[i, k]) = n div m);
+constraint forall(k in 1..m)(
+    sum(i in 1..n)(x[i, k]) = n div m
+);
 
 % ------------------------------------- input features for ANN ------------------------------
 
-float: span0 = (max(cpi) + min(cpi)) / 2;
-float: span1 = (max(cpi) - min(cpi)) / 2;
+float: span0 = (max(cpi) + min(cpi))/2;
+float: span1 = (max(cpi) - min(cpi))/2;
 
 % 1. average cpi of the jobs on core k
-array[1..m] of float: avgcpi = [ ((sum(i in 1..n)(cpi[i] * x[i,k]) / m) - span0) / span1 | k in 1..m ];
+% array[1..m] of float: avgcpi = [ ((sum(i in 1..n)(cpi[i] * x[i,k]) /m) - span0) / span1 | k in 1..m ];
 
-% array[1..m] of float: avgcpi;
+array[1..m] of float: avgcpi;
 
 % 2. minimum cpi of the jobs on core k
 array[1..m] of 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
