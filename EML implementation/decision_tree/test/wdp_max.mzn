@@ -1,3 +1,5 @@
+% https://bitbucket.org/m_lombardi/eml-aij-2015-resources/src/5c9a3b409ed057a4b86ad34605786fb476190b32/results/scc_ptf_feat3_logs/wld_warm_div20-0-1-ls.txt?at=master&fileviewer=file-view-default
+
 include "decision_tree.mzn";
 include "neigh.mzn";
 
@@ -44,7 +46,7 @@ constraint forall(k in 1..m)(sum(i in 1..n)(x[i, k]) = n div m );
 % ------------------------------------- input features for DT ------------------------------
 
 % 1. average cpi of the jobs on core k
-array[1..m] of float: self_cpi_mean = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
+array[1..m] of float: self_cpi_mean = [ sum(i in 1..n)(cpi[i] * x[i, k]) / (n/m) | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
 array[1..m] of 0.0..max(cpi): self_cpi_min = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];

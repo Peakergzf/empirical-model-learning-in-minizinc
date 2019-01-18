@@ -48,14 +48,14 @@ constraint forall(k in 1..m)(
 % ------------------------------------- input features for DT ------------------------------
 
 % 1. average cpi of the jobs on core k
-array[1..m] of var float: self_cpi_mean = [ sum(i in 1..n)(cpi[i] * x[i, k]) / m | k in 1..m ];
+array[1..m] of var float: self_cpi_mean = [ sum(i in 1..n)(cpi[i] * x[i, k]) / (n/m) | k in 1..m ];
 
 % 2. minimum cpi of the jobs on core k
 array[1..m] of var 0.0..max(cpi): self_cpi_min = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
 
 
 % (set of neighbors for each core)
-array[1..m] of set of int: neigh = [ N(k, m, h) | k in 1..m ];
+array[1..m] of set of int: neigh = [ N(k) | k in 1..m ];
 
 % 3. average avgcpi of all the other cores
 array[1..m] of var float: all_cpi_mean = [ 

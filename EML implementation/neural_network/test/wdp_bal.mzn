@@ -55,9 +55,9 @@ float: span0 = (max(cpi) + min(cpi)) / 2;
 float: span1 = (max(cpi) - min(cpi)) / 2;
 
 % 1. average cpi of the jobs on core k
-array[1..m] of float: avgcpi = [ ((sum(i in 1..n)(cpi[i] * x[i,k]) / m) - span0) / span1 | k in 1..m ];
+% array[1..m] of float: avgcpi = [ ((sum(i in 1..n)(cpi[i] * x[i,k]) / (n/m)) - span0) / span1 | k in 1..m ];
 
-% array[1..m] of float: avgcpi;
+array[1..m] of float: avgcpi;
 
 % 2. minimum cpi of the jobs on core k
 array[1..m] of 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
@@ -101,6 +101,35 @@ solve maximize obj;
 
 % ===================================== OUTPUT =====================================
 
-% constraint trace(show(avgcpi) ++ "\n");
-constraint trace(show(eff));
+output  
+%       ["\njob -> core mapping:\n"]
+%        ++
+%        [ if k == 1 then "\(i)->" else "" endif ++
+%          if fix(x[i, k]) then "\(k), " else "" endif
+%          | i in 1..n, k in 1..m ]
+       ["min cpi = \(min(cpi))\nmax cpi = \(max(cpi))\n"]
+       ++
+       ["\navg cpi map:\n\t"]
+       ++
+       [ show_float(6, 5, avgcpi[k]) ++ if k mod (m div h) == 0 then "\n\t" else  ", " endif | k in 1..m ]
+       ++
+       [ "\nmin cpi:\n\t" ]
+       ++
+       [ show_float(6, 5, mincpi[k]) ++ if k mod (m div h) == 0 then "\n\t" else  ", " endif | k in 1..m ]
+       ++
+       [ "\nneighbor avg cpi:\n\t" ]
+       ++
+       [ show_float(6, 5, neighcpi[k]) ++ if k mod (m div h) == 0 then "\n\t" else  ", " endif | k in 1..m ]
+       ++
+       [ "\nother avg cpi:\n\t" ]
+       ++
+       [ show_float(6, 5, othercpi[k]) ++ if k mod (m div h) == 0 then "\n\t" else  ", " endif | k in 1..m ]
+       ++
+       ["***********************"]
+       ++
+       [ "\nefficiency:\n\t" ]
+       ++
+       [ show_float(6, 5, eff[k]) ++ if k mod (m div h) == 0 then "\n\t" else  ", " endif | k in 1..m ]
+       ++
+       [ "\nworst-case core efficiency: \(obj)\n" ];
 

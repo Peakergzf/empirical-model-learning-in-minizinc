@@ -1,0 +1,45 @@
+{
+    "builtinSolverConfigs": [
+        {
+            "additionalCompilerCommandline": "",
+            "additionalData": "",
+            "clearOutputWindow": true,
+            "compressSolutionOutput": 100,
+            "defaultBehavior": true,
+            "flatteningStats": false,
+            "freeSearch": false,
+            "id": "org.gecode.gecode",
+            "nThreads": 1,
+            "name": "Gecode 6.1.0",
+            "optimizationLevel": 1,
+            "outputTiming": false,
+            "printIntermediate": false,
+            "runSolutionChecker": true,
+            "solverFlags": "",
+            "solvingStats": false,
+            "stopAfter": 1,
+            "timeLimit": 0,
+            "verboseFlattening": false,
+            "verboseSolving": false,
+            "version": "6.1.0"
+        }
+    ],
+    "openFiles": [
+        "data.dzn",
+        "decision_tree.mzn",
+        "neigh.mzn",
+        "wdp_max.mzn"
+    ],
+    "openTab": 3,
+    "projectFiles": [
+        "data.dzn",
+        "decision_tree.mzn",
+        "neigh.mzn",
+        "wdp_max.mzn"
+    ],
+    "projectSolverConfigs": [
+    ],
+    "selectedBuiltinConfigId": "org.gecode.gecode",
+    "selectedBuiltinConfigVersion": "6.1.0",
+    "version": 105
+}
