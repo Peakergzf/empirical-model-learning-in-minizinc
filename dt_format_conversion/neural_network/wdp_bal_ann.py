@@ -68,7 +68,7 @@ def read_cpi():
     with open(CPI_FILE, 'r') as f:
         line = f.readlines()
 
-    cpi_lst = line[0].rstrip().split(', ')
+    cpi_lst = line[0].rstrip().split(',')
     assert len(cpi_lst) == n
 
     return list(map(float, cpi_lst))
@@ -82,18 +82,23 @@ def ann(x, theta1, theta2):
     :param theta2: weights from hidden layer to hypothesis
     :return: hypothesis
     """
+    assert len(x) == X_SIZE
+    assert len(theta1) == A_SIZE
+    for row in theta1:
+        assert len(row) == X_SIZE + 1
+    assert len(theta2) == A_SIZE + 1
+
     x.append(1.0)  # bias unit
-    a = [0.0 for _ in range(A_SIZE + 1)]
+    a = [0.0 for _ in range(A_SIZE)]
 
     # from input layer to hidden layer
-    for i in range(A_SIZE + 1):
-        if i == A_SIZE:
-            a[i] = 1.0  # bias unit
-        else:
-            x_theta1 = 0.0
-            for j in range(X_SIZE + 1):
-                x_theta1 += x[j] * theta1[i][j]
-            a[i] = math.tanh(x_theta1)
+    for i in range(A_SIZE):
+        x_theta1 = 0.0
+        for j in range(X_SIZE + 1):
+            x_theta1 += x[j] * theta1[i][j]
+        a[i] = math.tanh(x_theta1)
+
+    a.append(1.0)  # bias unit
 
     # from hidden layer to hypothesis
     a_theta2 = 0.0
@@ -123,15 +128,21 @@ def main():
     jobs_cpi = [[cpi_lst[idx] for idx in jobs_idx[k]] for k in range(m)]
 
     # average cpi of the jobs on each core
+
     avg_cpi = [sum(jobs_cpi[k]) / float(n / m) for k in range(m)]
+
+    # avg_cpi_unscaled = [sum(jobs_cpi[k]) / float(n / m) for k in range(m)]
+    # span0 = (max(avg_cpi_unscaled) + min(avg_cpi_unscaled)) / 2
+    # span1 = (max(avg_cpi_unscaled) - min(avg_cpi_unscaled)) / 2
+    # avg_cpi = [(i - span0) / span1 for i in avg_cpi_unscaled]
 
     # minimum cpi of the jobs on each core
     min_cpi = [min(jobs_cpi[k]) for k in range(m)]
 
-    # average of avgcpi of the neighbors for each core
+    # average of avg_cpi of the neighbors for each core
     neigh_cpi = [sum([avg_cpi[j] for j in neighs[k]]) / float(len(neighs[k])) for k in range(m)]
 
-    # average of avgcpi of all the other cores except for neighbours and itself
+    # average of avg_cpi of all the other cores except for neighbours and itself
     other_cpi = [sum([avg_cpi[j] for j in range(m) if j not in neighs[k] and j != k]) / float(m - len(neighs[k]) - 1)
                  for k in range(m)]
 
@@ -143,10 +154,10 @@ def main():
 
     for k in range(m):
         print("core " + ('0' if k < 10 else '') + str(k) + ": " +
-              "avg={:8.6f}, min={:8.6f}, neigh={:8.6f}, other={:8.6f}, eff={:8.6f}"
+              "avg={:16.14f}, min={:16.14f}, neigh={:16.14f}, other={:16.14f}, eff={:16.14f}"
               .format(avg_cpi[k], min_cpi[k], neigh_cpi[k], other_cpi[k], eff[k]))
 
-    print("obj={:8.6f}".format(min(eff)))
+    print("obj={:16.14f}".format(min(eff)))
 
 
 if __name__ == '__main__':

@@ -54,9 +54,6 @@
     ],
     "openTab": 1,
     "projectFiles": [
-        "data/140_20.dzn",
-        "data/144_24.dzn",
-        "data/288_12.dzn",
         "data/288_48.dzn",
         "decision_tree.mzn",
         "neigh_k.mzn",

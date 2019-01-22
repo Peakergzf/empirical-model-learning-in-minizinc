@@ -83,6 +83,8 @@ array[1..m] of var 0..1: eff = [
 
 % maximize the number of cores having an efficiency larger than a certain threshold
 var int: obj;
+% constraint obj <= 30;
+% --readParam param_tuning/p2Obj30Linux108sWindows2min
 
 constraint obj = sum(k in 1..m)(eff[k]);
 
