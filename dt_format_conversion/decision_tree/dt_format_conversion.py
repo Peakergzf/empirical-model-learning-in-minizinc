@@ -83,12 +83,12 @@ class Output:
                 lst += [DUMMIES[i] for _ in range(max_len - len(lst))]
 
 
-def read_file():
+def read_file(file_name):
     """
     reads the decision trees from a file
     :return: a list of  trees
     """
-    with open("ptf_feat3.txt") as f:
+    with open(file_name) as f:
         lines = f.read().rstrip()
 
     trees = lines.split("\n\n")
@@ -196,25 +196,31 @@ def convert_cond(cond):
     return feat_idx, feat_rel, feat_val
 
 
-def create_data_file(output):
+def convert_cond2(cond):
     """
-    read cpi values from the file and takes the output string,
-    writes to the output file
+    since all the left branching condition is LE, it can be emitted
     """
-    with open("cpi.in") as f:
-        cpi = f.read()
+    feat_idx = [
+        LEAVES[NAMES.index("feature_idx")]
+        if c.split()[0] == LEAF_COND
+        else FEAT_IDX[c.split()[0]]
+        for c in cond
+    ]
 
-    with open("data.dzn", 'w'):
-        pass
+    feat_val = [
+        LEAVES[NAMES.index("feature_val")]
+        if c.split()[0] == LEAF_COND
+        else c.split()[2]
+        for c in cond
+    ]
 
-    with open("data.dzn", 'a') as data_file:
-        data_file.write(cpi + output)
+    return feat_idx, feat_val
 
 
-def main():
+def convert_tree_format(file_name):
     output = Output(NAMES)
 
-    trees = read_file()
+    trees = read_file(file_name)
 
     for tree in trees:
 
@@ -236,8 +242,5 @@ def main():
         output.add([feat_idx, feat_rel, feat_val, child, val])
 
     output.fill_dummies()
-    create_data_file(str(output))
 
-
-if __name__ == '__main__':
-    main()
+    return str(output)
