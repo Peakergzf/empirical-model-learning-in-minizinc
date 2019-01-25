@@ -1,4 +1,4 @@
-from handwritten_digits.constants import side, dir_name
+from handwritten_digits.python_implementation.constants import side, dir_name
 from scipy.misc import imsave
 import numpy as np
 import os

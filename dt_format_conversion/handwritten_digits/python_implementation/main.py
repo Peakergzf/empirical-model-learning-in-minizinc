@@ -1,7 +1,7 @@
-from handwritten_digits.constants import m
-from handwritten_digits.read_file import read_weight, read_training_set
-from handwritten_digits.utility import generate_image, delete_images, print_digit, lst_to_mat
-from handwritten_digits.ann import ann
+from handwritten_digits.python_implementation.constants import m
+from handwritten_digits.python_implementation.read_file import read_weight, read_training_set
+from handwritten_digits.python_implementation.utility import generate_image, delete_images, print_digit, lst_to_mat
+from handwritten_digits.python_implementation.ann import ann
 
 
 def main():

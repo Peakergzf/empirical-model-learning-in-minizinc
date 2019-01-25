@@ -1,4 +1,4 @@
-from handwritten_digits.constants import n, hidden_layer_size, output_layer_size
+from handwritten_digits.python_implementation.constants import n, hidden_layer_size, output_layer_size
 import math
 
 
