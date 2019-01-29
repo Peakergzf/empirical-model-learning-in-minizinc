@@ -15,22 +15,19 @@ set of int: aRangeExd = 1..hidden_layer_size + 1;
 array[aRange, xRangeExd] of float: theta1;
 array[hRange, aRangeExd] of float: theta2;
 
-float: prec = 0.01;
 array[1..n] of float: x;
-array[1..n] of var -10..10: change;
-array[1..n] of var float: mat = [ x[i] + change[i] * prec |  i in 1..n ];
 
-constraint 0 != neural_network(
+
+int: pred_digit == neural_network(
     n, 
     hidden_layer_size, 
     output_layer_size, 
-    mat, 
+    x, 
     theta1, 
     theta2
 );
 
-var int: obj = sum(change);
+solve satisfy;
 
-solve maximize obj;
-
+output [show(pred_digit)];
 
