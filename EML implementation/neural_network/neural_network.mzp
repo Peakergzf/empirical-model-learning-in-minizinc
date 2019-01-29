@@ -26,15 +26,13 @@
     ],
     "openFiles": [
         "data.dzn",
-        "data2.dzn",
         "neural_network.mzn",
         "wdp_bal.mzn",
         "neigh_k.mzn"
     ],
-    "openTab": 4,
+    "openTab": 2,
     "projectFiles": [
         "data.dzn",
-        "data2.dzn",
         "neigh_k.mzn",
         "neural_network.mzn",
         "wdp_bal.mzn"

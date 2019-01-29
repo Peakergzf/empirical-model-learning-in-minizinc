@@ -113,28 +113,20 @@ def main():
     # cpi values for each job
     wld = read_cpi()
 
-    cpi_n_sub = 0.5 * 35
-    cpi_n_div = 0.5 * 35
+    # ================= input scaling ======================
+    cpi_vmin = 0
+    cpi_vmax = 35
+
+    cpi_n_sub = 0.5 * (cpi_vmax - cpi_vmin)
+    cpi_n_div = 0.5 * (cpi_vmax - cpi_vmin)
 
     norm_cpi = [(v - cpi_n_sub) / cpi_n_div for v in wld]
 
-    cpi_lst = [int(round(v * 10000)) for v in norm_cpi]
+    # cpi_lst = [int(round(v * 10000)) for v in norm_cpi]
 
-    # cpi_vmin = 0
-    # cpi_vmax = 35
-    # cpi_n_sub = 0.5 * (cpi_vmax - cpi_vmin)
-    # cpi_n_div = 0.5 * (cpi_vmax - cpi_vmin)
-    # def normalize_cpi(V):
-    #     return [(v - cpi_n_sub) / cpi_n_div for v in V]
+    cpi_lst = norm_cpi
 
-    # eff_vmin = 0.0
-    # eff_vmax = 1.0
-    # eff_n_sub = 0.5 * (eff_vmax + 0.2 - eff_vmin)
-    # eff_n_div = 0.5 * (eff_vmax + 0.2 - eff_vmin)
-    # def normalize_eff(V):
-    #     return [(v - eff_n_sub) / eff_n_div for v in V]
-
-    # wld = [int(round(v * prec)) for v in normalize_cpi(wld_original)]
+    # ==================================================
 
     # neighbor core index for each core
     neighs = read_neigh()
@@ -154,11 +146,6 @@ def main():
 
     avg_cpi = [sum(jobs_cpi[k]) / float(n / m) for k in range(m)]
 
-    # avg_cpi_unscaled = [sum(jobs_cpi[k]) / float(n / m) for k in range(m)]
-    # span0 = (max(avg_cpi_unscaled) + min(avg_cpi_unscaled)) / 2
-    # span1 = (max(avg_cpi_unscaled) - min(avg_cpi_unscaled)) / 2
-    # avg_cpi = [(i - span0) / span1 for i in avg_cpi_unscaled]
-
     # minimum cpi of the jobs on each core
     min_cpi = [min(jobs_cpi[k]) for k in range(m)]
 
@@ -173,17 +160,26 @@ def main():
     theta1, theta2 = read_weights()
 
     # use ann to determine the efficiency for each core
-    eff = [ann([avg_cpi[k], min_cpi[k], neigh_cpi[k], other_cpi[k]], theta1[k], theta2[k]) for k in range(m)]
+    eff_s = [ann([avg_cpi[k], min_cpi[k], neigh_cpi[k], other_cpi[k]], theta1[k], theta2[k]) for k in range(m)]
 
-    # eff_s = [0.5 * (e - 1.2) / 1.2 for e in eff]
-    eff_s = [(e - 0.6) / 0.6 for e in eff]
+    # ================= output scaling ======================
+    eff_vmin = 0.0
+    eff_vmax = 1.0
+
+    eff_n_sub = 0.5 * (eff_vmax + 0.2 - eff_vmin)
+    eff_n_div = 0.5 * (eff_vmax + 0.2 - eff_vmin)
+
+    # eff_s = [(e - eff_n_sub) / eff_n_div for e in eff]
+
+    eff = [e * eff_n_div + eff_n_sub for e in eff_s]
+    # ==================================================
 
     for k in range(m):
         print("core " + ('0' if k < 10 else '') + str(k) + ": " +
               "avg={:16.14f}, min={:16.14f}, neigh={:16.14f}, other={:16.14f}, eff={:16.14f}"
-              .format(avg_cpi[k], min_cpi[k], neigh_cpi[k], other_cpi[k], eff_s[k]))
+              .format(avg_cpi[k], min_cpi[k], neigh_cpi[k], other_cpi[k], eff[k]))
 
-    print("obj={:16.14f}".format(min(eff_s)))
+    print("obj={:16.14f}".format(min(eff)))
 
 
 if __name__ == '__main__':

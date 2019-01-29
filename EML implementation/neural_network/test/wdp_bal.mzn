@@ -14,7 +14,7 @@ int: h;
 constraint assert(n mod m == 0, "n must be a multiple of m.");
 
 % cpi value of each job
-array[1..n] of float: cpi;
+array[1..n] of float: cpi_original;
 
 % -------------------------------- data for neural network ----------------------------
 
@@ -51,16 +51,24 @@ constraint forall(k in 1..m)(sum(i in 1..n)(x[i, k]) = n div m);
 
 % ------------------------------------- input features for ANN ------------------------------
 
-% float: span0 = (max(cpi) + min(cpi)) / 2;
-% float: span1 = (max(cpi) - min(cpi)) / 2;
+% ----- input scaling -----
+
+int: cpi_vmin = 0;
+int: cpi_vmax = 35;
+
+float: cpi_n_sub = 0.5 * (cpi_vmax - cpi_vmin);
+float: cpi_n_div = 0.5 * (cpi_vmax - cpi_vmin);
+
+array[1..n] of float: cpi = [(v - cpi_n_sub) / cpi_n_div | v in cpi_original];
+
+% -------------------------
 
 % 1. average cpi of the jobs on core k
-% array[1..m] of float: avgcpi = [ ((sum(i in 1..n)(cpi[i] * x[i,k]) / (n/m)) - span0) / span1 | k in 1..m ];
 array[1..m] of float: avgcpi = [ sum(i in 1..n)(cpi[i] * x[i,k]) / (n/m) | k in 1..m ];
-% array[1..m] of float: avgcpi;
+
 
 % 2. minimum cpi of the jobs on core k
-array[1..m] of 0.0..max(cpi): mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
+array[1..m] of float: mincpi = [ min([ max(cpi) - (max(cpi) - cpi[i]) * x[i, k] | i in 1..n ]) | k in 1..m ];
 
 
 % (set of neighbors for each core)
@@ -84,18 +92,30 @@ array[1..m] of float: othercpi = [
 % determine the efficiency of each core using neural network
     % input layer size, hidden layer size, (exclude bias unit)
     % input features (include bias unit)
-array[1..m] of float: eff = [ 
+array[1..m] of float: eff_s = [ 
              neural_network( input_layer_size, 
                              hidden_layer_size, 
-                             [ avgcpi[k], mincpi[k], neighcpi[k], othercpi[k], 1.0 ],
+                             [ avgcpi[k], mincpi[k], neighcpi[k], othercpi[k] ],
                              theta1[k, .., ..],
                              theta2[k, ..] ) | k in 1..m ];
 
 
+% ----- output scaling -----
+
+int: eff_vmin = 0;
+int: eff_vmax = 1;
+
+float: eff_n_sub = 0.5 * (eff_vmax + 0.2 - eff_vmin);
+float: eff_n_div = 0.5 * (eff_vmax + 0.2 - eff_vmin);
+
+array[1..m] of float: eff = [e * eff_n_div + eff_n_sub | e in eff_s];
+
+% ---------------------------
+
 % ===================================== OBJECTIVE =====================================
 
 % maximize the worst-case core efficiency
-var -1.0..1.0: obj;
+var 0.0..1.0: obj;
 constraint forall (i in index_set(eff)) (obj <= eff[i]);
 solve maximize obj;
 
