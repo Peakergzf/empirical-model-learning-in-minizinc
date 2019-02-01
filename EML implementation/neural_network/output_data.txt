@@ -1,5 +1,0 @@
-Compiling wdp_bal.mzn, with additional data data.dzn 
-Running wdp_bal.mzn
-Error: syntax error, unexpected FZ_ID, expecting FZ_FLOAT_LIT in line no. 69035
-Process finished with non-zero exit code 1
-Finished in 45s 821msec
